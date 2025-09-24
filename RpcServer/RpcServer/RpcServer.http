@@ -1,0 +1,12 @@
+﻿@RpcServer_HostAddress = https://localhost:5000
+
+POST {{RpcServer_HostAddress}}/rpc
+Content-type:Application/json
+
+{
+  "JsonRPC":"2.0",
+  "Method":"hello",
+  "Params":{"name":"karin"},
+  "Id":1
+}
+###
