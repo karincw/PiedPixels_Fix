@@ -1,4 +1,5 @@
 ﻿using RpcServer.DTO;
+using RpcServer.Serializer;
 using RPCServer;
 using RPCServer.RpcService;
 using System.Text.Json;
@@ -16,22 +17,29 @@ namespace RpcServer
 
             app.MapGet("/", () => "Game Server is running!");
 
-            //                                                  자동으로 넣어줌
             app.MapPost("/rpc", async (HttpRequest request, RpcDispatcher rpcDispatcher) =>
             {
                 using var reader = new StreamReader(request.Body);
                 var body = await reader.ReadToEndAsync();
 
-                var rpcRequest = JsonSerializer.Deserialize<RpcRequestDTO>(body);
+                DataFormat inputFormat = FormatUtility.ResolveInput(request);
+                DataFormat outputFormat = FormatUtility.ResolveOutput(request);
+
+                var rpcRequest = SerializerUtility.DeSerializer(body, inputFormat);
 
                 if (rpcRequest == null)
                 {
                     return Results.Json(new { error = "Invalid request" });
                 }
 
-                var response = await rpcDispatcher.DispatchAsync(rpcRequest);
+                RpcResponseDTO responseDTO = await rpcDispatcher.DispatchAsync(rpcRequest);
 
-                return Results.Json(response);
+                byte[] response = SerializerUtility.Serializer(responseDTO, outputFormat);
+
+                return Results.Bytes(
+                    contents: response,
+                    contentType: FormatUtility.GetContentType(outputFormat)
+                );
             });
 
             app.Run();

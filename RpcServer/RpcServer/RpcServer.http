@@ -10,3 +10,12 @@ Content-type:Application/json
   "Id":1
 }
 ###
+POST {{RPCServer_HostAddress}}/rpc?in=yaml&out=yaml
+Content-type:application/x-yaml
+
+JsonRPC: 2.0
+Method: hello
+Params:
+  name: choi 0 hwan
+Id: 1
+###
