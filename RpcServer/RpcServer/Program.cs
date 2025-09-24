@@ -26,11 +26,16 @@ namespace RpcServer
                 DataFormat inputFormat = FormatUtility.ResolveInput(request);
                 DataFormat outputFormat = FormatUtility.ResolveOutput(request);
 
-                var rpcRequest = SerializerUtility.DeSerializer(body, inputFormat);
+                RpcRequestDTO rpcRequest = SerializerUtility.DeSerializer(body, inputFormat);
 
                 if (rpcRequest == null)
                 {
-                    return Results.Json(new { error = "Invalid request" });
+                    return Results.Json(new RpcResponseDTO
+                    {
+                        id = 0,
+                        error = new RpcErrorDTO(code: -32700, message: "Parse error", null),
+                        result = null
+                    });
                 }
 
                 RpcResponseDTO responseDTO = await rpcDispatcher.DispatchAsync(rpcRequest);

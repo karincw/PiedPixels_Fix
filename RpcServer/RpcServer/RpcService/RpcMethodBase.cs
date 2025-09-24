@@ -1,7 +1,9 @@
-﻿namespace RPCServer.RpcService
+﻿using RpcServer.DTO;
+
+namespace RPCServer.RpcService
 {
     public interface IRpcMethodBase
     {
-        public Task<object> HelloAsync(Dictionary<string, object>? parameters);
+        public Task<MethodResultDTO> HelloAsync(Dictionary<string, object>? parameters);
     }
 }

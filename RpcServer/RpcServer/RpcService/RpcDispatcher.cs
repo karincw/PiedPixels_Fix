@@ -44,27 +44,35 @@ namespace RPCServer
 
         public async Task<RpcResponseDTO> DispatchAsync(RpcRequestDTO request)
         {
-            RpcResponseDTO resultDTO = new();
+            RpcResponseDTO ResponseDTO = new();
             if (rpcMethodDictionary.TryGetValue(request.Method.ToLower(), out var handler))
             {
-                resultDTO.id = request.Id;
+                ResponseDTO.id = request.Id;
                 try
                 {
-                    var result = await handler(request.Params);
-                    resultDTO.result = result;
+                    object result = await handler(request.Params);
+
+                    if (result is MethodResultDTO methodResult)
+                    {
+                        ResponseDTO.JsonRpc = request.JsonRpc;
+                        ResponseDTO.result = methodResult.result;
+                        ResponseDTO.error = methodResult.error;
+                    }
+                    else
+                    {
+                        ResponseDTO.result = result;
+                    }
                 }
                 catch (Exception ex)
                 {
-                    resultDTO.error = ex.Message;
+                    ResponseDTO.error = new RpcErrorDTO(-32000, "Server error", ex.Message);
                 }
-                return resultDTO;
             }
             else
             {
-                resultDTO.id = request.Id;
-                resultDTO.error = "Method Not Found";
-                return resultDTO;
+                ResponseDTO.error = new RpcErrorDTO(-32601, "Method not found", null);
             }
+            return ResponseDTO;
         }
 
 
