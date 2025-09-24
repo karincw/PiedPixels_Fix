@@ -1,4 +1,6 @@
 ﻿using RpcServer.DTO;
+using RPCServer;
+using RPCServer.RpcService;
 using System.Text.Json;
 
 namespace RpcServer
@@ -8,12 +10,14 @@ namespace RpcServer
         static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddSingleton<RpcDispatcher>();
 
             var app = builder.Build();
 
             app.MapGet("/", () => "Game Server is running!");
 
-            app.MapPost("/rpc", async (HttpRequest request) =>
+            //                                                  자동으로 넣어줌
+            app.MapPost("/rpc", async (HttpRequest request, RpcDispatcher rpcDispatcher) =>
             {
                 using var reader = new StreamReader(request.Body);
                 var body = await reader.ReadToEndAsync();
@@ -25,22 +29,7 @@ namespace RpcServer
                     return Results.Json(new { error = "Invalid request" });
                 }
 
-                if (rpcRequest.Method == null)
-                {
-                    return Results.Json(new { error = "Method Name Required" });
-                }
-                object? result = null;
-
-                if (rpcRequest.Method == "hello")
-                {
-                    result = $"hello {rpcRequest.Params["name"]}";
-                }
-
-                var response = new RpcResponseDTO
-                {
-                    id = rpcRequest.Id,
-                    result = result
-                };
+                var response = await rpcDispatcher.DispatchAsync(rpcRequest);
 
                 return Results.Json(response);
             });
@@ -49,3 +38,4 @@ namespace RpcServer
         }
     }
 }
+
